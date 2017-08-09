@@ -1,0 +1,28 @@
+table.of.contents {
+    width:100%;
+    font-size:11pt;
+    color: #444;
+}
+
+.toc_level_1 td {
+    padding-top: 0.75em;
+    font-size:12pt;
+    border-bottom: 1px dotted black;
+}
+
+.toc_level_1 td.label {
+    font-weight: bold;
+    padding-left:0px;
+}
+
+.toc_level_2 td.label{
+    padding-left:0.5cm;
+}
+
+.toc_level_3 td.label{
+    padding-left:1.0cm;
+}
+
+.toc_level_4 td.label{
+    padding-left:1.5cm;
+}

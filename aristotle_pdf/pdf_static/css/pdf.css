@@ -1,0 +1,66 @@
+* {
+    font-size:11pt;
+    font-family: 'Baloo Tamma', serif;
+}
+
+h1 {
+    border-top:1px solid black;
+    border-bottom:1px solid black;
+    padding:5px;
+}
+
+h2 {
+    border-top:1px solid darkgray;
+    border-left:1px solid darkgray;
+    padding:5px;
+}
+
+#supersedes {
+    list-style-type:none;
+    margin-left:0px;
+    float:right;
+}
+
+#supersedes > span {
+    display:table-cell;
+}
+#supersedes ul, #supersedes ol {
+    /*display:inline-block;*/
+    /*list-style-type:none;*/
+    padding:0px;
+    margin:0px;
+}
+
+/*#content .objectSpecific dl {*/
+/*    padding-top:0.25cm;*/
+/*    padding-left:0.5cm;*/
+/*}*/
+
+/*#content .objectSpecific dt {*/
+/*    font-weight:bold;*/
+/*}*/
+
+/*#content .objectSpecific dd {*/
+/*    padding-left:1cm;*/
+/*}*/
+
+a {
+    text-decoration: none;
+    color:#222;
+}
+
+@page {
+    margin: 1cm;
+    margin-bottom: 2cm;
+    padding: 0.5cm;
+    border: 0px solid white;
+    @frame footer {
+        -pdf-frame-content: footerContent;
+        bottom: 0cm;
+        margin-left: 2cm;
+        margin-right: 2cm;
+        padding:0.2cm;
+        height: 2cm;
+    }
+
+}

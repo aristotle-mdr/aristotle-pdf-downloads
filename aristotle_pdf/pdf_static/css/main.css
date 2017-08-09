@@ -1,0 +1,13 @@
+@page {
+    size: {{ pagesize }};
+    @bottom-right {
+        content: "Page " counter(page)
+                 " of " counter(pages)
+    }
+
+    @bottom-center {
+        font-size: 80%;
+        content: "Powered by the Aristotle Metadata Registry";
+    }
+
+}
