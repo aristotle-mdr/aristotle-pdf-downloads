@@ -1,55 +1,80 @@
 from aristotle_mdr.utils import get_download_template_path_for_item
 import cgi
-
-try:  # Python 2
-    from cStringIO import StringIO as BytesIO
-except:  # Python 3
-    from io import BytesIO
+import os
 
 
 from django.http import HttpResponse, Http404
 # from django.shortcuts import render
-from django.template.loader import select_template
+from django.template.loader import select_template, get_template
 from django.template import Context
 from django.utils.safestring import mark_safe
 
-import csv
 from aristotle_mdr.contrib.help.models import ConceptHelp
 
 import weasyprint
 
 item_register = {
-    'pdf': '__template__'
+    'pdf_new': '__template__'
 }
+
+PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
 
 def generate_outline_str(bookmarks, indent=0):
     outline_str = ""
     for i, (label, (page, _, _), children) in enumerate(bookmarks, 1):
         outline_str += ('<div>%s %d. %s ..... <span style="float:right"> %d </span> </div>' % (
-            '&nbsp;' * indent, i, label.lstrip('0123456789. '), page))
-        outline_str += generate_outline_str(children, indent + 2)
+            '&nbsp;' * indent*2, i, label.lstrip('0123456789. '), page+1))
+        outline_str += generate_outline_str(children, indent + 1)
     return outline_str
 
+def generate_outline_tree(bookmarks, depth=1):
+    outline_str = []
+    
+    return [
+        {'label':label, "depth":depth, "page":page+1, "children":generate_outline_tree(children, depth+1)}
+        for i, (label, (page, _, _), children) in enumerate(bookmarks, 1)
+    ]
 
-def render_to_pdf(template_src, context_dict, debug_as_html=False):
+
+def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/downloads/pdf/title.html',debug_as_html=False):
     # If the request template doesnt exist, we will give a default one.
     template = select_template([
         template_src,
         'aristotle_mdr/downloads/pdf/managedContent.html'
     ])
+
     context = Context(context_dict)
     html = template.render(context)
 
     if debug_as_html:
         return HttpResponse(html)
 
-    document = weasyprint.HTML(string=template.render(context)).render()
+    document = weasyprint.HTML(
+        string=template.render(context),
+        base_url=PDF_STATIC_PATH
+    ).render()
 
     table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
-    table_of_contents_document = weasyprint.HTML(string=table_of_contents_string).render()
-    # table_of_contents_page = table_of_contents_document.pages[0]
+    toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
+            Context({
+                "toc_tree":generate_outline_tree(document.make_bookmark_tree())
+            })
+        )
 
-    document.pages.insert(1, table_of_contents_page)
+    table_of_contents_document = weasyprint.HTML(
+        string=toc,
+        base_url=PDF_STATIC_PATH
+    ).render()
+
+    if preamble_template:
+        title_page = weasyprint.HTML(
+            string=get_template(preamble_template).render(context),
+            base_url=PDF_STATIC_PATH
+        ).render().pages[0]
+        document.pages.insert(0, title_page)
+
+    for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
+        document.pages.insert(i+1, table_of_contents_page)
 
 
     # if not pdf.err:
@@ -76,7 +101,7 @@ def download(request, download_type, item):
                 'view': request.GET.get('view', '').lower(),
                 'pagesize': request.GET.get('pagesize', page_size),
                 'request': request,
-            }
+            },
         )
 
 
@@ -150,5 +175,6 @@ def bulk_download(request, download_type, items, title=None, subtitle=None):
                 ),
                 'pagesize': request.GET.get('pagesize', page_size),
             },
+            preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
             debug_as_html=debug_as_html
         )

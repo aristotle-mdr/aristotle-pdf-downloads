@@ -32,7 +32,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=[
-        'weazyprint',
-        "Pango>=1.38",
+        'aristotle-metadata-registry>=1.5.6',
+        'weasyprint',
     ],
 )
