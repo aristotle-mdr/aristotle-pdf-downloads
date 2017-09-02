@@ -23,6 +23,7 @@ install:
 # command to run tests
 script:
 # Start a few workers
+  - tox -e pep8
   - tox -e dj$DJANGO_VERSION-test --skip-missing-interpreters
 
 after_success:

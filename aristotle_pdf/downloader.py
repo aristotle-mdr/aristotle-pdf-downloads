@@ -14,29 +14,30 @@ from aristotle_mdr.contrib.help.models import ConceptHelp
 import weasyprint
 
 item_register = {
-    'pdf': '__template__'
+    'pdf_new': '__template__'
 }
 
 PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
+
 
 def generate_outline_str(bookmarks, indent=0):
     outline_str = ""
     for i, (label, (page, _, _), children) in enumerate(bookmarks, 1):
         outline_str += ('<div>%s %d. %s ..... <span style="float:right"> %d </span> </div>' % (
-            '&nbsp;' * indent*2, i, label.lstrip('0123456789. '), page+1))
+            '&nbsp;' * indent * 2, i, label.lstrip('0123456789. '), page + 1))
         outline_str += generate_outline_str(children, indent + 1)
     return outline_str
 
+
 def generate_outline_tree(bookmarks, depth=1):
     outline_str = []
-    
     return [
-        {'label':label, "depth":depth, "page":page+1, "children":generate_outline_tree(children, depth+1)}
+        {'label': label, "depth": depth, "page": page + 1, "children": generate_outline_tree(children, depth + 1)}
         for i, (label, (page, _, _), children) in enumerate(bookmarks, 1)
     ]
 
 
-def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/downloads/pdf/title.html',debug_as_html=False):
+def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/downloads/pdf/title.html', debug_as_html=False):
     # If the request template doesnt exist, we will give a default one.
     template = select_template([
         template_src,
@@ -56,10 +57,10 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
 
     table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
     toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
-            Context({
-                "toc_tree":generate_outline_tree(document.make_bookmark_tree())
-            })
-        )
+        Context({
+            "toc_tree": generate_outline_tree(document.make_bookmark_tree())
+        })
+    )
 
     table_of_contents_document = weasyprint.HTML(
         string=toc,
@@ -74,8 +75,7 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
         document.pages.insert(0, title_page)
 
     for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
-        document.pages.insert(i+1, table_of_contents_page)
-
+        document.pages.insert(i + 1, table_of_contents_page)
 
     # if not pdf.err:
     return HttpResponse(document.write_pdf(), content_type='application/pdf')
