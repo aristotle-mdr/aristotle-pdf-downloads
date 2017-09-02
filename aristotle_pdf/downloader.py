@@ -14,7 +14,7 @@ from aristotle_mdr.contrib.help.models import ConceptHelp
 import weasyprint
 
 item_register = {
-    'pdf_new': '__template__'
+    'pdf': '__template__'
 }
 
 PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
