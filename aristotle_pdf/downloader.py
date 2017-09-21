@@ -19,6 +19,82 @@ item_register = {
 
 PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
 
+from aristotle_mdr.downloader import DownloaderBase
+
+
+class PDFDownloader(DownloaderBase):
+    download_type = "pdf"
+    metadata_register = '__template__'
+    label = "PDF"
+    icon_class = "fa-file-pdf-o"
+    description = "Downloads for various content types in the PDF format"
+
+    @classmethod
+    def download(cls, request, item):
+        """Built in download method"""
+        template = get_download_template_path_for_item(item, cls.download_type)
+        from django.conf import settings
+        page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
+
+        subItems = [
+            (obj_type, qs.visible(request.user).order_by('name').distinct())
+            for obj_type, qs in item.get_download_items()
+        ]
+        return render_to_pdf(
+            template,
+            {
+                'item': item,
+                'subitems': subItems,
+                'tableOfContents': len(subItems) > 0,
+                'view': request.GET.get('view', '').lower(),
+                'pagesize': request.GET.get('pagesize', page_size),
+                'request': request,
+            },
+        )
+
+    @classmethod
+    def bulk_download(cls, request, items, title=None, subtitle=None):
+        """Built in download method"""
+        template = 'aristotle_mdr/downloads/pdf/bulk_download.html'  # %(download_type)
+        from django.conf import settings
+        page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
+    
+        item_querysets = items_for_bulk_download(items, request)
+    
+        if title is None:
+            if request.GET.get('title', None):
+                title = request.GET.get('title')
+            else:
+                title = "Auto-generated document"
+    
+        if subtitle is None:
+            if request.GET.get('subtitle', None):
+                subtitle = request.GET.get('subtitle')
+            else:
+                _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
+                subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
+
+        subItems = []
+
+        debug_as_html = bool(request.GET.get('html', ''))
+
+        return render_to_pdf(
+            template,
+            {
+                'title': title,
+                'subtitle': subtitle,
+                'items': items,
+                'included_items': sorted(
+                    [(k, v) for k, v in item_querysets.items()],
+                    key=lambda k_v: k_v[0]._meta.model_name
+                ),
+                'pagesize': request.GET.get('pagesize', page_size),
+            },
+            preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
+            debug_as_html=debug_as_html
+        )
+
+
 
 def generate_outline_str(bookmarks, indent=0):
     outline_str = ""
@@ -82,29 +158,6 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
     # return HttpResponse('We had some errors<pre>%s</pre>' % cgi.escape(html))
 
 
-def download(request, download_type, item):
-    """Built in download method"""
-    template = get_download_template_path_for_item(item, download_type)
-    from django.conf import settings
-    page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-    if download_type == "pdf":
-        subItems = [
-            (obj_type, qs.visible(request.user).order_by('name').distinct())
-            for obj_type, qs in item.get_download_items()
-        ]
-        return render_to_pdf(
-            template,
-            {
-                'item': item,
-                'subitems': subItems,
-                'tableOfContents': len(subItems) > 0,
-                'view': request.GET.get('view', '').lower(),
-                'pagesize': request.GET.get('pagesize', page_size),
-                'request': request,
-            },
-        )
-
-
 def items_for_bulk_download(items, request):
     iids = {}
     item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
@@ -135,46 +188,3 @@ def items_for_bulk_download(items, request):
         ).first()
 
     return item_querysets
-
-
-def bulk_download(request, download_type, items, title=None, subtitle=None):
-    """Built in download method"""
-    template = 'aristotle_mdr/downloads/pdf/bulk_download.html'  # %(download_type)
-    from django.conf import settings
-    page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-
-    item_querysets = items_for_bulk_download(items, request)
-
-    if title is None:
-        if request.GET.get('title', None):
-            title = request.GET.get('title')
-        else:
-            title = "Auto-generated document"
-
-    if subtitle is None:
-        if request.GET.get('subtitle', None):
-            subtitle = request.GET.get('subtitle')
-        else:
-            _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
-            subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
-
-    if download_type == "pdf":
-        subItems = []
-
-        debug_as_html = bool(request.GET.get('html', ''))
-
-        return render_to_pdf(
-            template,
-            {
-                'title': title,
-                'subtitle': subtitle,
-                'items': items,
-                'included_items': sorted(
-                    [(k, v) for k, v in item_querysets.items()],
-                    key=lambda k_v: k_v[0]._meta.model_name
-                ),
-                'pagesize': request.GET.get('pagesize', page_size),
-            },
-            preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
-            debug_as_html=debug_as_html
-        )
