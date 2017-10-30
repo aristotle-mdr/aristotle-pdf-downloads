@@ -11,6 +11,9 @@ from django.utils.safestring import mark_safe
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 
+from aristotle_mdr.downloader import DownloaderBase
+
+import logging
 import weasyprint
 
 item_register = {
@@ -19,7 +22,8 @@ item_register = {
 
 PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
 
-from aristotle_mdr.downloader import DownloaderBase
+logger = logging.getLogger(__name__)
+logger.debug("Logging started for " + __name__)
 
 
 class PDFDownloader(DownloaderBase):
@@ -40,9 +44,11 @@ class PDFDownloader(DownloaderBase):
             (obj_type, qs.visible(request.user).order_by('name').distinct())
             for obj_type, qs in item.get_download_items()
         ]
+
         return render_to_pdf(
             template,
             {
+                'title': "PDF Download for {obj.name}".format(obj=item),
                 'item': item,
                 'subitems': subItems,
                 'tableOfContents': len(subItems) > 0,
@@ -130,7 +136,10 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
         string=template.render(context),
         base_url=PDF_STATIC_PATH
     ).render()
-
+    
+    if not context_dict['tableOfContents']:
+        return HttpResponse(document.write_pdf(), content_type='application/pdf')
+    
     table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
     toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
         Context({
@@ -153,9 +162,7 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
     for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
         document.pages.insert(i + 1, table_of_contents_page)
 
-    # if not pdf.err:
     return HttpResponse(document.write_pdf(), content_type='application/pdf')
-    # return HttpResponse('We had some errors<pre>%s</pre>' % cgi.escape(html))
 
 
 def items_for_bulk_download(items, request):
