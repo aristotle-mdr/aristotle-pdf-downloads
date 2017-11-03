@@ -1,0 +1,11 @@
+include LICENSE
+include README.rst
+recursive-include aristotle_pdf/contrib *
+recursive-include aristotle_pdf/locale *
+recursive-include aristotle_pdf/static *
+recursive-include aristotle_pdf/templates *
+recursive-exclude aristotle_pdf/ *.pyc
+exclude MANIFEST.in
+exclude aristotle_pdf/contrib/help/static/aristotle_pdf
+exclude aristotle_pdf/static/aristotle_pdf
+exclude aristotle_pdf/static/bootstrap3_datetime

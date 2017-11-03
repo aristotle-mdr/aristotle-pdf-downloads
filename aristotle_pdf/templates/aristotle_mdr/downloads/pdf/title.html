@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>{% block title %}{% endblock %} - {{ config.SITE_NAME }}</title>
+      <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+      <link rel="stylesheet" type="text/css" href="css/pdf.css" />
+   </head>
+   <body>
+   <div id="main">
+        {% if tableOfContents %}
+           <div style="page-break-after:always;">
+                PDF download for:
+                <strong>
+                    {{ item.name }}
+                </strong>
+           </div>
+        {% endif %}
+    </div>
+   </body>
+</html>
