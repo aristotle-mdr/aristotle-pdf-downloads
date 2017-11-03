@@ -1,17 +1,14 @@
 from aristotle_mdr.tests.settings.settings import *
+from aristotle_mdr.required_settings import INSTALLED_APPS
 
 INSTALLED_APPS = (
     'aristotle_pdf',
 )+INSTALLED_APPS
 
-extra = [
-    ('pdf', 'PDF', 'fa-file-pdf-o', 'aristotle_pdf'),
-]
-try:
-    ARISTOTLE_SETTINGS['DOWNLOADERS'] = ARISTOTLE_SETTINGS['DOWNLOADERS'] + extra
-except:
-    ARISTOTLE_DOWNLOADS = ARISTOTLE_DOWNLOADS + extra
+ARISTOTLE_SETTINGS['DOWNLOADERS'] = ARISTOTLE_SETTINGS['DOWNLOADERS'] + "aristotle_pdf.downloader.PDFDownloader"
 
 ARISTOTLE_SETTINGS['BULK_ACTIONS'].update({
-    'quick_pdf_download':'aristotle_mdr.forms.bulk_actions.QuickPDFDownloadForm',
+    'aristotle_pdf.bulk_actions.QuickPDFDownloadForm',
 })
+
+ROOT_URLCONF = 'aristotle_pdf.tests.urls'
