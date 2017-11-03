@@ -136,7 +136,7 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
         base_url=PDF_STATIC_PATH
     ).render()
 
-    if not context_dict['tableOfContents']:
+    if not context_dict.get('tableOfContents', False):
         return HttpResponse(document.write_pdf(), content_type='application/pdf')
 
     table_of_contents_string = generate_outline_str(document.make_bookmark_tree())

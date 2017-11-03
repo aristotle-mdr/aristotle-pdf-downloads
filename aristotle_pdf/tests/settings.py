@@ -9,5 +9,4 @@ ARISTOTLE_SETTINGS['DOWNLOADERS'] = ARISTOTLE_SETTINGS['DOWNLOADERS'] + ["aristo
 
 ARISTOTLE_SETTINGS['BULK_ACTIONS'] += ['aristotle_pdf.bulk_actions.QuickPDFDownloadForm',]
 
-
 ROOT_URLCONF = 'aristotle_pdf.tests.urls'

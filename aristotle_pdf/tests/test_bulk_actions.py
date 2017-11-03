@@ -21,7 +21,7 @@ class QuickPDFDownloadTests(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'quick_pdf_download',
+                'bulkaction': 'aristotle_pdf.bulk_actions.QuickPDFDownloadForm',
                 'items': [self.item1.id, self.item2.id],
             }
         )
@@ -34,7 +34,7 @@ class QuickPDFDownloadTests(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'quick_pdf_download',
+                'bulkaction': 'aristotle_pdf.bulk_actions.QuickPDFDownloadForm',
                 'items': [self.item1.id, self.item4.id],
             },
             follow=True
@@ -53,7 +53,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'bulk_download',
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
                 'items': [self.item1.id, self.item2.id],
                 "title": "The title",
                 "download_type": self.download_type,
@@ -68,7 +68,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'bulk_download',
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
                 'items': [self.item1.id, self.item4.id],
                 "title": "The title",
                 "download_type": self.download_type,
@@ -86,7 +86,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'bulk_download',
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
                 'items': [self.item1.id, self.item4.id],
                 "title": "The title",
                 "download_type": self.download_type,
@@ -100,7 +100,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
-                'bulkaction': 'bulk_download',
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
                 'items': [self.item1.id, self.item4.id],
                 "title": "The title",
                 "download_type": self.download_type,
@@ -144,4 +144,33 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         self.assertContains(response, self.item1.definition)
         self.assertContains(response, self.item2.definition)  # Will be in as its a component of DEC5
         self.assertContains(response, self.item5.definition)
+
+
+    def test_content_not_exists_in_bulk_pdf_download_on_forbidden_items(self):
+        self.logout()
+
+        self.item5 = models.DataElementConcept.objects.create(name="DEC1", definition="DEC5 definition", objectClass=self.item2, workgroup=self.wg1)
+
+        response = self.client.get(
+            reverse(
+                'aristotle:bulk_download',
+                kwargs={
+                    "download_type": self.download_type,
+                }
+            ),
+            {
+                "items": [self.item1.id, self.item4.id],
+                "title": "The title",
+                "html": True  # Force HTML to debug content
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, self.item1.name)
+        self.assertNotContains(response, self.item2.name)  # Will be in as its a component of DEC5
+        self.assertNotContains(response, self.item5.name)
+
+        self.assertNotContains(response, self.item1.definition)
+        self.assertNotContains(response, self.item2.definition)  # Will be in as its a component of DEC5
+        self.assertNotContains(response, self.item5.definition)
 
