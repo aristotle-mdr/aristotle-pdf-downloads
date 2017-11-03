@@ -33,4 +33,4 @@ after_success:
 matrix:
   allow_failures:
     - env: DJANGO_VERSION='1.11'
-    - env: DJ=1.10 ARISTOTLE_VERSION=develop
+    - env: DJANGO_VERSION=1.10 ARISTOTLE_VERSION=develop
