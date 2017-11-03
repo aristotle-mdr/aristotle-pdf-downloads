@@ -64,15 +64,15 @@ class PDFDownloader(DownloaderBase):
         template = 'aristotle_mdr/downloads/pdf/bulk_download.html'  # %(download_type)
         from django.conf import settings
         page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-    
+
         item_querysets = items_for_bulk_download(items, request)
-    
+
         if title is None:
             if request.GET.get('title', None):
                 title = request.GET.get('title')
             else:
                 title = "Auto-generated document"
-    
+
         if subtitle is None:
             if request.GET.get('subtitle', None):
                 subtitle = request.GET.get('subtitle')
@@ -99,7 +99,6 @@ class PDFDownloader(DownloaderBase):
             preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
             debug_as_html=debug_as_html
         )
-
 
 
 def generate_outline_str(bookmarks, indent=0):
@@ -136,10 +135,10 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
         string=template.render(context),
         base_url=PDF_STATIC_PATH
     ).render()
-    
+
     if not context_dict['tableOfContents']:
         return HttpResponse(document.write_pdf(), content_type='application/pdf')
-    
+
     table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
     toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
         Context({
